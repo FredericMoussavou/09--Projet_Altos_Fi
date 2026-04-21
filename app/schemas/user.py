@@ -102,3 +102,15 @@ class ProfileUpdate(ProfileBase):
 
 class ProfileOut(ProfileBase):
     model_config = ConfigDict(from_attributes=True)
+
+# --- SCHEMAS DE PRÉFÉRENCES (Version Lecture) ---
+class UserPreferencesOut(UserPreferencesBase):
+    model_config = ConfigDict(from_attributes=True)
+
+# --- SCHEMA GLOBAL AGRÉGÉ ---
+class UserGlobalOut(UserOut):
+    profile: Optional[ProfileOut] = None
+    preferences: Optional[UserPreferencesOut] = None
+    # On ajoutera "notifications: List[NotificationOut]" ici plus tard
+    
+    model_config = ConfigDict(from_attributes=True)
