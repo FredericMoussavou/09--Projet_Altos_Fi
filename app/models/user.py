@@ -8,6 +8,11 @@ from app.core.database import Base
 
 # --- ENUMS ---
 
+class TransactionSource(str, enum.Enum):
+    SALAIRE = "Salaire"
+    BUSINESS = "Business"
+    CADEAU = "Cadeau"
+    AUTRE = "Autre"
 class MaritalStatus(str, enum.Enum):
     CELIBATAIRE = "Célibataire"
     MARIE = "Marié"
@@ -105,3 +110,20 @@ class BudgetMember(Base):
     role = Column(Enum(MemberRole), default=MemberRole.OWNER)
     user = relationship("User", back_populates="budgets")
     budget = relationship("Budget", back_populates="members")
+
+# --- NOUVELLE TABLE DES TRANSACTIONS ---
+class Transaction(Base):
+    __tablename__ = "transactions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    label = Column(String, nullable=False) # Libellé de la banque
+    amount = Column(Float, nullable=False)
+    date = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Classification pour ton moteur budgétaire
+    source = Column(Enum(TransactionSource), default=TransactionSource.AUTRE)
+    is_processed = Column(Boolean, default=False) # Si l'IA/le moteur a déjà alloué cet argent
+    
+    user = relationship("User", backref="transactions")
