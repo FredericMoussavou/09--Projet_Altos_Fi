@@ -19,6 +19,7 @@ def create_user(db: Session, user_in: UserCreate):
     hashed_password = get_password_hash(user_in.password)
     
     db_user = User(
+        username=user_in.username,
         email=user_in.email,
         password_hash=hashed_password,
         first_name=user_in.first_name,
@@ -36,3 +37,7 @@ def create_user(db: Session, user_in: UserCreate):
 def get_user_by_email(db: Session, email: str):
     """Cherche un utilisateur dans la base via son email."""
     return db.query(User).filter(User.email == email).first()
+
+def get_user_by_username(db: Session, username: str):
+    """Cherche un utilisateur par son nom d'utilisateur."""
+    return db.query(User).filter(User.username == username).first()

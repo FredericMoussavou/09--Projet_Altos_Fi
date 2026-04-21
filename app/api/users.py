@@ -15,5 +15,9 @@ def create_new_user(user: schema_user.UserCreate, db: Session = Depends(get_db))
         # On lève une exception propre au lieu de laisser le serveur crasher
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé.")
     
-    # 2. Si l'email est libre, on procède à la création
+    # 2. Vérification Username
+    if crud_user.get_user_by_username(db, username=user.username):
+        raise HTTPException(status_code=400, detail="Ce nom d'utilisateur est déjà pris.")
+    
+    # 3. Si l'email et le username sont libres, on procède à la création
     return crud_user.create_user(db=db, user_in=user)
