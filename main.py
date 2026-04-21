@@ -1,13 +1,15 @@
 # main.py
 from fastapi import FastAPI
 from app.core.database import engine, Base
-from app.models import user # On importe le modèle pour que SQLAlchemy le voie
+from app.models import user
+from app.api import users # On importe notre nouveau fichier de routes
 
-# Cette ligne est magique : elle parcourt tous les modèles héritant de "Base"
-# et crée les tables dans la base de données si elles n'existent pas encore.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Altos Fi API")
+
+# On inclut les routes utilisateurs
+app.include_router(users.router)
 
 @app.get("/")
 def read_root():
