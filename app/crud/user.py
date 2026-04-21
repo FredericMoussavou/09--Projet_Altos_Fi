@@ -41,3 +41,15 @@ def get_user_by_email(db: Session, email: str):
 def get_user_by_username(db: Session, username: str):
     """Cherche un utilisateur par son nom d'utilisateur."""
     return db.query(User).filter(User.username == username).first()
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Vérifie si le mot de passe tapé correspond au hash en base."""
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def update_user_password(db: Session, user: User, new_password: str):
+    """Met à jour le mot de passe d'un utilisateur avec un nouveau hash."""
+    user.password_hash = get_password_hash(new_password)
+    db.commit()
+    db.refresh(user)
+    return user

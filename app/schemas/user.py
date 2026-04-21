@@ -10,6 +10,21 @@ class GenderEnum(str, Enum):
     HOMME = "Homme"
     FEMME = "Femme"
 
+#Validation mot de passe
+
+def validate_password_complexity(v: str) -> str:
+    """Fonction réutilisable pour valider la complexité du mot de passe."""
+    if not re.search(r'[A-Z]', v):
+        raise ValueError('Le mot de passe doit contenir au moins une majuscule.')
+    if not re.search(r'[a-z]', v):
+        raise ValueError('Le mot de passe doit contenir au moins une minuscule.')
+    if not re.search(r'[0-9]', v):
+        raise ValueError('Le mot de passe doit contenir au moins un chiffre.')
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>+]', v):
+        raise ValueError('Le mot de passe doit contenir au moins un caractère spécial.')
+    return v
+
+
 # Schema de base : ce qui est commun à la création et à la lecture
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=20)
@@ -25,16 +40,8 @@ class UserCreate(UserBase):
 
     @field_validator('password')
     @classmethod
-    def password_complexity(cls, v: str) -> str:
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Le mot de passe doit contenir au moins une majuscule.')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Le mot de passe doit contenir au moins une minuscule.')
-        if not re.search(r'[0-9]', v):
-            raise ValueError('Le mot de passe doit contenir au moins un chiffre.')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>+]', v):
-            raise ValueError('Le mot de passe doit contenir au moins un caractère spécial.')
-        return v
+    def validate_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
 
 # Schema pour la lecture (ce que l'API renvoie au frontend)
 class UserOut(UserBase):
@@ -43,3 +50,20 @@ class UserOut(UserBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str = Field(..., min_length=8)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
+
+class PasswordReset(BaseModel):
+    password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        return validate_password_complexity(v)
