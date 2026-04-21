@@ -1,4 +1,14 @@
+# Environnement virtuel
 venv/
-*.db
+.venv/
+
+# Cache Python
 __pycache__/
+*.py[cod]
+
+# Base de données locale
+*.db
+
+# Dossier de tests
+tests/
 .pytest_cache/
