@@ -1,6 +1,6 @@
 # app/schemas/user.py
 import re
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
@@ -42,7 +42,4 @@ class UserOut(UserBase):
     is_premium: bool
     created_at: datetime
 
-    class Config:
-        # Cette ligne permet à Pydantic de lire les données 
-        # même si ce sont des objets de base de données (SQLAlchemy)
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

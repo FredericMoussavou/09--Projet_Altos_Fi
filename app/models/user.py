@@ -1,5 +1,6 @@
 # app/models/user.py
 from sqlalchemy import Column, String, Boolean, DateTime, Text, Enum
+from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from datetime import datetime
@@ -28,5 +29,5 @@ class User(Base):
     is_premium = Column(Boolean, default=False)
     
     # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=func.now(), nullable=False) # Utilise le temps du serveur SQL
     last_login = Column(DateTime, nullable=True)
