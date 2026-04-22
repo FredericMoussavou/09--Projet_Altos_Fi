@@ -92,3 +92,71 @@ class BudgetService:
         
         db.commit()
         return grand_total > income # True si alerte nécessaire
+    @staticmethod
+    def update_budget_line(db: Session, budget_id: str, new_amount: float):
+        """
+        Analyse la modification de Paul et définit l'action à entreprendre.
+        """
+        budget = db.query(Budget).filter(Budget.id == budget_id).first()
+        old_amount = budget.estimated_amount
+
+        # Cas 1 : Paul met à 0
+        if new_amount == 0:
+            return {
+                "status": "NEED_CONFIRMATION",
+                "question": "FINISHED_OR_POSTPONED",
+                "message": "Cette dépense est-elle terminée ou simplement reportée ?"
+            }
+
+        # Cas 2 : Augmentation
+        elif new_amount > old_amount:
+            return {
+                "status": "NEED_CONFIRMATION",
+                "question": "ANTICIPATION_OR_NEW_BASE",
+                "message": "Est-ce une anticipation (remboursement accéléré) ou un nouveau montant permanent ?"
+            }
+
+        # Cas 3 : Diminution
+        elif new_amount < old_amount:
+            return {
+                "status": "NEED_CONFIRMATION",
+                "question": "TEMP_ADJUST_OR_NEW_BASE",
+                "message": "Est-ce une baisse ponctuelle ou un nouveau montant permanent ?"
+            }
+
+        return {"status": "SUCCESS", "action": "IMMEDIATE_UPDATE"}
+    
+    @staticmethod
+    def confirm_budget_veto(db: Session, budget_id: str, new_amount: float, decision: str):
+        """
+        Applique la décision de Paul suite à un changement de montant.
+        Décisions possibles : 'TERMINATED', 'POSTPONED', 'ANTICIPATION', 'NEW_BASE', 'TEMP'
+        """
+        budget = db.query(Budget).filter(Budget.id == budget_id).first()
+        category = budget.category
+
+        if decision == "TERMINATED":
+            # Le montant ne se présente plus les mois d'après
+            budget.estimated_amount = 0
+            # Optionnel : on pourrait désactiver la catégorie ou la dette associée
+            debt = db.query(Debt).filter(Debt.category_id == category.id).first()
+            if debt:
+                debt.status = "completed"
+
+        elif decision == "NEW_BASE":
+            # On met à jour le montant actuel ET on en fait la nouvelle référence
+            budget.estimated_amount = new_amount
+            # L'IA utilisera ce montant comme M-1 le mois prochain
+
+        elif decision == "POSTPONED" or decision == "TEMP":
+            # On change juste ce mois-ci
+            budget.estimated_amount = new_amount
+            # Le mois prochain, le moteur reprendra l'historique M-1 ou la Dette
+
+        elif decision == "ANTICIPATION":
+            # Paul paie plus pour solder. On met à jour le montant.
+            budget.estimated_amount = new_amount
+            # On pourrait ici ajouter une logique pour réduire le capital de la dette
+
+        db.commit()
+        return {"status": "SUCCESS", "new_amount": budget.estimated_amount}
