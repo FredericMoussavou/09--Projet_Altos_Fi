@@ -1,0 +1,6 @@
+{
+  "max_user_pockets": 5,
+  "analysis_period_days": 90,
+  "tithing_default_ratio": 0.1,
+  "prediction_rule": "MAX"
+}

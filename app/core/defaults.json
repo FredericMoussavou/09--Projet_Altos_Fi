@@ -1,0 +1,69 @@
+{
+  "system_pockets": [
+    {
+      "name": "Dîme",
+      "is_system": true,
+      "categories": ["Dîme"]
+    },
+    {
+      "name": "À classer",
+      "is_system": true,
+      "categories": []
+    }
+  ],
+  "user_pockets": [
+    {
+      "name": "Besoins",
+      "is_system": false,
+      "categories": [
+        "Loyer",
+        "Crédit immobilier",
+        "Crédit consommation",
+        "Crédit auto",
+        "Courses",
+        "Énergie",
+        "Eau",
+        "Télécom",
+        "Assurances",
+        "Carburant",
+        "Impôts",
+        "Dettes",
+        "Santé",
+        "Transport",
+        "Maison"
+      ]
+    },
+    {
+      "name": "Envies",
+      "is_system": false,
+      "categories": [
+        "Restauration",
+        "Loisirs",
+        "Shopping",
+        "Achats en ligne",
+        "Habillement",
+        "Beauté",
+        "Sport",
+        "Cadeaux"
+      ]
+    },
+    {
+      "name": "Épargne",
+      "is_system": false,
+      "categories": [
+        "Épargne de précaution",
+        "Projets",
+        "Investissement"
+      ]
+    },
+    {
+      "name": "Dons",
+      "is_system": false,
+      "categories": [
+        "Associations",
+        "Aide ponctuelle",
+        "Offrandes"
+      ]
+    }
+  ]
+}
