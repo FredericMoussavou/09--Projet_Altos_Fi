@@ -68,11 +68,36 @@ def classify_transaction(db: Session, user_id: str, label: str):
     
     return fallback[0] if fallback else None
 
-def reclassify_and_learn(db: Session, transaction_id: str, new_category_id: str):
+def reclassify_and_learn(db: Session, label: str, new_category_name: str):
     """
-    Fonction requise par le test de robustesse.
-    Permet de corriger une catégorie et d'enregistrer l'apprentissage.
+    Apprend un nouveau mapping à partir d'une correction utilisateur.
+    Extraie un mot-clé significatif du libellé et l'ajoute au settings.json.
     """
-    # Pour l'instant, on se contente de passer pour débloquer le test
-    # La logique d'écriture dans settings.json sera ajoutée en phase 2
-    pass
+    if not label or not new_category_name:
+        return False
+
+    # 1. Nettoyage du libellé pour extraire un mot-clé (on prend les 2 premiers mots par ex)
+    # Ou on peut prendre le libellé complet s'il est court
+    words = label.upper().split()
+    keyword = " ".join(words[:3]) if len(words) > 2 else label.upper()
+    keyword = keyword.strip("!@#$%^&*()_+-=") # Nettoyage des caractères spéciaux
+
+    # 2. Chargement du fichier actuel
+    if os.path.exists(SETTINGS_PATH):
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    else:
+        data = {"learning_mappings": {}}
+
+    # 3. Mise à jour du dictionnaire
+    # On ajoute le nouveau mapping ou on met à jour l'existant
+    data["learning_mappings"][keyword] = new_category_name
+
+    # 4. Sauvegarde persistante
+    try:
+        with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Erreur lors de l'apprentissage : {e}")
+        return False
