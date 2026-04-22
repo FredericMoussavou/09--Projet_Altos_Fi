@@ -123,19 +123,36 @@ def test_income_matrix():
 
 # --- MODULE 5 : IA LEARNING & MAPPINGS (10 tests) ---
 def test_ia_robustness():
-    print("\nM5: Robustesse de l'IA Learning...")
-    # Test avec des libellés bancaires "sales" ou bizarres
-    weird_labels = [
-        "   CARBURANT TOTAL  ", "!!!!AUCHAN!!!!", "12345NETFLIX6789", 
-        "LOYER-SEPTEMBRE-2023", "Virement de : CAF_PROVENCE"
+    print("\nM5: Robustesse de l'IA Learning & Gestion du 'À classer'...")
+    
+    # Liste de tests : Certains connus, d'autres totalement inconnus
+    test_cases = [
+        ("   CARBURANT TOTAL  ", True),    # Connu (TOTAL)
+        ("!!!!AUCHAN!!!!", True),          # Connu (AUCHAN)
+        ("RETRAIT DAB 20/10", False),      # INCONNU -> À classer
+        ("LOYER-SEPTEMBRE-2023", True),   # Connu (LOYER)
+        ("Virement de : CAF_PROVENCE", False), # INCONNU (si non mappé) -> À classer
+        ("ZELDA SHOP EBAY", False)         # INCONNU -> À classer
     ]
-    for label in weird_labels:
+    
+    to_classify_list = []
+    
+    for label, should_know in test_cases:
         cat_id = classify_transaction(db, user.id, label)
-        if not cat_id:
-            print(f"  ⚠️ IA n'a pas reconnu : {label}")
+        cat = db.query(Category).filter(Category.id == cat_id).first()
+        
+        if cat and cat.name == "À classer":
+            to_classify_list.append(label)
+            print(f"  📥 [À CLASSER] : '{label}'")
+        elif cat:
+            print(f"  ✅ [AUTO] : '{label}' -> {cat.name}")
         else:
-            cat = db.query(Category).filter(Category.id == cat_id).first()
-            print(f"  ✅ Reconnu : '{label}' -> {cat.name}")
+            print(f"  ❌ [ERREUR] : '{label}' n'a même pas pu être mis en 'À classer'")
+
+    print(f"\n📝 BILAN POUR L'UTILISATEUR :")
+    print(f"   Vous avez {len(to_classify_list)} opérations en attente de classification manuelle :")
+    for item in to_classify_list:
+        print(f"     - {item}")
 
 # --- LANCEMENT ---
 if __name__ == "__main__":
