@@ -118,3 +118,23 @@ class Transaction(Base):
     is_processed = Column(Boolean, default=False)
     
     user = relationship("User", back_populates="transactions")
+
+class UserDistributionPreference(Base):
+    """Stocke les % de répartition choisis par l'utilisateur pour ses pockets."""
+    __tablename__ = "user_distribution_preferences"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"))
+    pocket_id = Column(String, ForeignKey("pockets.id"))
+    percentage = Column(Float, nullable=False) # Ex: 0.50 pour 50%
+
+class TransactionSplit(Base):
+    """Permet de diviser une transaction entrante (Revenu) sur plusieurs destinations."""
+    __tablename__ = "transaction_splits"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    transaction_id = Column(String, ForeignKey("transactions.id"))
+    pocket_id = Column(String, ForeignKey("pockets.id"))
+    category_id = Column(String, ForeignKey("categories.id"), nullable=True)
+    amount = Column(Float, nullable=False)
+    label = Column(String, nullable=True) # Ex: "Part Besoins du salaire"

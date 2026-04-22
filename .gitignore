@@ -10,5 +10,5 @@ __pycache__/
 *.db
 
 # Dossier de tests
-tests/
+
 .pytest_cache/

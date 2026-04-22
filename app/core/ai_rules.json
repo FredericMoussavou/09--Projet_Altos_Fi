@@ -1,6 +1,0 @@
-{
-  "analysis_period_months": 3,
-  "prediction_strategy": "MAX",
-  "min_transactions_for_prediction": 1,
-  "fallback_strategy": "ZERO"
-}

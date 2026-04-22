@@ -8,17 +8,17 @@ def classify_transaction(db: Session, user_id: str, label: str):
     Parcourt le dictionnaire d'apprentissage pour trouver une catégorie 
     correspondant au libellé bancaire.
     """
-    file_path = os.path.join("app", "core", "learning_data.json")
+    file_path = os.path.join("app", "core", "settings.json")
     
     if not os.path.exists(file_path):
         return None
 
     with open(file_path, "r", encoding="utf-8") as f:
-        learning_data = json.load(f)
+        settings = json.load(f)
     
     label_upper = label.upper()
     
-    for keyword, target_cat_name in learning_data["mappings"].items():
+    for keyword, target_cat_name in settings["mappings"].items():
         if keyword.upper() in label_upper:
             # Recherche de la catégorie correspondante chez cet utilisateur
             category = db.query(Category).join(Pocket).filter(
@@ -41,7 +41,7 @@ def reclassify_and_learn(db: Session, transaction_id: str, new_category_id: str,
     new_cat = db.query(Category).filter(Category.id == new_category_id).first()
     
     # 3. Mettre à jour le JSON d'apprentissage
-    file_path = os.path.join("app", "core", "learning_data.json")
+    file_path = os.path.join("app", "core", "settings.json")
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     
