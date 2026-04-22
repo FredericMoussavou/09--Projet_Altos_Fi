@@ -57,6 +57,7 @@ class UserBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     gender: Optional[GenderEnum] = None
+    tithing_enabled: bool = False
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
