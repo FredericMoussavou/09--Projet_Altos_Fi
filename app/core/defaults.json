@@ -3,12 +3,16 @@
     {
       "name": "Dîme",
       "is_system": true,
-      "categories": ["Dîme"]
+      "categories": [
+        { "name": "Dîme", "type": "variable" }
+      ]
     },
     {
       "name": "À classer",
       "is_system": true,
-      "categories": ["À classer"]
+      "categories": [
+        { "name": "À classer", "type": "variable" }
+      ]
     }
   ],
   "user_pockets": [
@@ -16,53 +20,53 @@
       "name": "Besoins",
       "is_system": false,
       "categories": [
-        "Loyer",
-        "Crédit immobilier",
-        "Crédit consommation",
-        "Crédit auto",
-        "Courses",
-        "Énergie",
-        "Eau",
-        "Télécom",
-        "Assurances",
-        "Carburant",
-        "Impôts",
-        "Dettes",
-        "Santé",
-        "Transport",
-        "Maison"
+        { "name": "Loyer", "type": "fixed" },
+        { "name": "Crédit immobilier", "type": "fixed" },
+        { "name": "Crédit consommation", "type": "fixed" },
+        { "name": "Crédit auto", "type": "fixed" },
+        { "name": "Courses", "type": "variable" },
+        { "name": "Énergie", "type": "fixed" },
+        { "name": "Eau", "type": "fixed" },
+        { "name": "Télécom", "type": "fixed" },
+        { "name": "Assurances", "type": "fixed" },
+        { "name": "Carburant", "type": "variable" },
+        { "name": "Impôts", "type": "fixed" },
+        { "name": "Dettes", "type": "fixed" },
+        { "name": "Santé", "type": "variable" },
+        { "name": "Transport", "type": "variable" },
+        { "name": "Maison", "type": "variable" }
       ]
     },
     {
       "name": "Envies",
       "is_system": false,
       "categories": [
-        "Restauration",
-        "Loisirs",
-        "Shopping",
-        "Achats en ligne",
-        "Habillement",
-        "Beauté",
-        "Sport",
-        "Cadeaux"
+        { "name": "Restauration", "type": "variable" },
+        { "name": "Loisirs", "type": "variable" },
+        { "name": "Shopping", "type": "variable" },
+        { "name": "Achats en ligne", "type": "variable" },
+        { "name": "Habillement", "type": "variable" },
+        { "name": "Beauté", "type": "variable" },
+        { "name": "Sport", "type": "variable" },
+        { "name": "Cadeaux", "type": "variable" }
       ]
     },
     {
       "name": "Épargne",
       "is_system": false,
       "categories": [
-        "Épargne de précaution",
-        "Projets",
-        "Investissement"
+        { "name": "Épargne de précaution", "type": "variable" },
+        { "name": "Projets", "type": "variable" },
+        { "name": "Investissement", "type": "variable" }
       ]
     },
     {
       "name": "Dons",
       "is_system": false,
       "categories": [
-        "Associations",
-        "Aide ponctuelle",
-        "Offrandes"
+        { "name": "Associations", "type": "variable" },
+        { "name": "Aide ponctuelle", "type": "variable" },
+        { "name": "Offrandes", "type": "variable" }
       ]
     }
   ]

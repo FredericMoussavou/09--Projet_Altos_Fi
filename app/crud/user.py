@@ -12,8 +12,8 @@ def get_user_by_email(db: Session, email: str):
 
 def create_user(db: Session, user: UserCreate):
     """
-    Crée un utilisateur et initialise ses Pockets à partir de la structure
-    system_pockets et user_pockets du fichier defaults.json.
+    Crée un utilisateur et initialise ses Pockets et Catégories à partir de la structure
+    enrichie (avec types Fixed/Variable) du fichier defaults.json.
     """
     # 1. Sécurité & Création User
     hashed_pwd = get_password_hash(user.password)
@@ -31,24 +31,36 @@ def create_user(db: Session, user: UserCreate):
     user_settings = UserSettings(user_id=db_user.id, tithing_enabled=False)
     db.add(user_settings)
 
-    # 3. Création des Pockets via defaults.json
+    # 3. Création des Pockets et Catégories via defaults.json
     if os.path.exists(DEFAULTS_PATH):
         with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
             defaults = json.load(f)
         
-        # On fusionne les deux listes du JSON pour les traiter
+        # On fusionne les system_pockets et user_pockets pour les traiter
         all_pockets_data = defaults.get("system_pockets", []) + defaults.get("user_pockets", [])
         
         for p_data in all_pockets_data:
-            new_pocket = Pocket(name=p_data["name"], user_id=db_user.id)
+            new_pocket = Pocket(
+                name=p_data["name"],
+                user_id=db_user.id
+            )
             db.add(new_pocket)
-            db.flush()
-            
-            # Ajout des catégories
-            for cat_name in p_data.get("categories", []):
-                new_cat = Category(name=cat_name, pocket_id=new_pocket.id)
+            db.flush()  # Nécessaire pour obtenir l'ID de la pocket avant de créer les catégories
+
+            # Création des catégories pour cette pocket
+            for cat_data in p_data.get("categories", []):
+                # cat_data est maintenant un dictionnaire : {"name": "...", "type": "..."}
+                category_name = cat_data.get("name")
+                # On récupère le type, on le met en majuscule pour correspondre à l'Enum (ex: "fixed" -> "FIXED")
+                category_type = cat_data.get("type", "variable").upper()
+
+                new_cat = Category(
+                    name=category_name,
+                    pocket_id=new_pocket.id,
+                    type=category_type
+                )
                 db.add(new_cat)
-    
+
     db.commit()
     db.refresh(db_user)
     return db_user
