@@ -128,5 +128,9 @@ class UserSettings(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"), unique=True)
     tithing_enabled = Column(Boolean, default=False)
-    
+    morning_briefing_enabled = Column(Boolean, default=True)
+    instant_alerts_enabled = Column(Boolean, default=True)
+    global_alert_threshold = Column(Float, default=0.15)
+    lock_vases_communicants = Column(Boolean, default=True)
+
     user = relationship("User", back_populates="settings")

@@ -32,7 +32,14 @@ def create_user(db: Session, user: UserCreate):
     db.flush() 
 
     # 2. Réglages (Dîme désactivée par défaut)
-    user_settings = UserSettings(user_id=db_user.id, tithing_enabled=False)
+    user_settings = UserSettings(
+        user_id=db_user.id, 
+        tithing_enabled=False,
+        morning_briefing_enabled=True,
+        instant_alerts_enabled=True,
+        global_alert_threshold=0.15,
+        lock_vases_communicants=True
+    )
     db.add(user_settings)
 
     # 3. Création des Pockets et Catégories via defaults.json

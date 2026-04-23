@@ -81,6 +81,12 @@ class UserPreferencesBase(BaseModel):
     ratio_give: int = 0
     tithing_enabled: bool = True
     tithing_percentage: float = 10.0
+    morning_briefing_enabled: bool = True
+    instant_alerts_enabled: bool = True
+    global_alert_threshold: float = 0.15
+    lock_vases_communicants: bool = True
+    class Config:
+        from_attributes = True
 
     @model_validator(mode='after')
     def validate_ratios_sum(self) -> 'UserPreferencesBase':
