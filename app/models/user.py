@@ -1,121 +1,132 @@
-import enum
 import uuid
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Date, Float, Enum, Integer
+import enum
+from sqlalchemy import Column, String, Float, Boolean, ForeignKey, Integer, DateTime, Enum
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 from app.core.database import Base
+from datetime import datetime
 
-# --- ENUMS ---
-
-class MaritalStatus(str, enum.Enum):
-    CELIBATAIRE = "Célibataire"
-    MARIE = "Marié"
-    PACS = "Pacsé"
-    CONCUBINAGE = "En couple"
-    DIVORCE = "Divorcé"
-    VEUF = "Veuf"
-
-class GenderEnum(str, enum.Enum):
-    HOMME = "Homme"
-    FEMME = "Femme"
+# Enums pour la cohérence des données
+class CategoryType(str, enum.Enum):
+    FIXED = "fixed"
+    VARIABLE = "variable"
 
 class TransactionSource(str, enum.Enum):
-    SALAIRE = "Salaire"
-    BUSINESS = "Business"
-    CADEAU = "Cadeau"
-    AUTRE = "Autre"
+    MANUAL = "MANUAL"
+    IMPORT = "IMPORT"
+    SYSTEM = "SYSTEM"
+    AUTRE = "AUTRE"
 
-# --- TABLES DE CONFIGURATION ---
+class DebtStatus(str, enum.Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
 
-class UserSettings(Base):
-    """Centrale des préférences de l'utilisateur."""
-    __tablename__ = "user_settings"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), unique=True)
-    
-    # Toggle Dîme par défaut à False selon tes instructions
-    tithing_enabled = Column(Boolean, default=False) 
-    
-    user = relationship("User", back_populates="settings")
-
-class UserDistributionPreference(Base):
-    """Stocke les % de répartition choisis par l'utilisateur pour ses pockets."""
-    __tablename__ = "user_distribution_preferences"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"))
-    pocket_id = Column(String, ForeignKey("pockets.id"))
-    percentage = Column(Float, nullable=False) # Ex: 0.50 pour 50%
-
-# --- TABLES PRINCIPALES ---
+class SavingType(str, enum.Enum):
+    PRECAUTION = "precaution" # Matelas de sécurité
+    PROJECT = "project"       # Ex: Projet Porte 4000€
 
 class User(Base):
     __tablename__ = "users"
-
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
     first_name = Column(String)
     last_name = Column(String)
-    birth_date = Column(Date)
-    gender = Column(Enum(GenderEnum), nullable=True)
-    marital_status = Column(Enum(MaritalStatus), default=MaritalStatus.CELIBATAIRE)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relations
     settings = relationship("UserSettings", back_populates="user", uselist=False)
-    pockets = relationship("Pocket", back_populates="user", cascade="all, delete-orphan")
-    transactions = relationship("Transaction", back_populates="user", cascade="all, delete-orphan")
+    pockets = relationship("Pocket", back_populates="user")
+    transactions = relationship("Transaction", back_populates="user")
 
 class Pocket(Base):
     __tablename__ = "pockets"
-
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    name = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
+    name = Column(String)
+    user_id = Column(String, ForeignKey("users.id"))
+    
     user = relationship("User", back_populates="pockets")
-    categories = relationship("Category", back_populates="pocket", cascade="all, delete-orphan")
+    categories = relationship("Category", back_populates="pocket")
 
 class Category(Base):
     __tablename__ = "categories"
-
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    pocket_id = Column(String, ForeignKey("pockets.id"), nullable=False)
-    name = Column(String, nullable=False)
-
+    name = Column(String)
+    pocket_id = Column(String, ForeignKey("pockets.id"))
+    # Nouveau : Type de dépense
+    type = Column(Enum(CategoryType), default=CategoryType.VARIABLE)
+    
     pocket = relationship("Pocket", back_populates="categories")
-    transactions = relationship("Transaction", back_populates="pocket_category")
+    transactions = relationship("Transaction", back_populates="category")
+    budgets = relationship("Budget", back_populates="category")
+    debts = relationship("Debt", back_populates="category")
 
+class Budget(Base):
+    __tablename__ = "budgets"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    category_id = Column(String, ForeignKey("categories.id"))
+    month = Column(Integer, nullable=False)
+    year = Column(Integer, nullable=False)
+    estimated_amount = Column(Float, default=0.0)
+    # On stocke le réalisé final ici à la clôture du mois
+    final_actual_amount = Column(Float, nullable=True) 
+    alert_threshold = Column(Float, default=0.2)
+    is_alert_enabled = Column(Boolean, default=True)
+    
+    category = relationship("Category", back_populates="budgets")
+
+class Debt(Base):
+    __tablename__ = "debts"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    category_id = Column(String, ForeignKey("categories.id"))
+    name = Column(String, nullable=False) # Ex: Crédit Auto Tesla
+    total_capital = Column(Float, nullable=False)
+    monthly_installment = Column(Float, nullable=False)
+    remaining_balance = Column(Float, nullable=False)
+    start_date = Column(DateTime, default=datetime.utcnow)
+    end_date = Column(DateTime, nullable=True)
+    status = Column(Enum(DebtStatus), default=DebtStatus.ACTIVE)
+    
+    category = relationship("Category", back_populates="debts")
+
+class Saving(Base):
+    __tablename__ = "savings"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"))
+    name = Column(String, nullable=False) # Ex: Projet Porte
+    type = Column(Enum(SavingType), default=SavingType.PROJECT)
+    target_amount = Column(Float, default=0.0)
+    current_amount = Column(Float, default=0.0)
+    monthly_contribution = Column(Float, default=0.0)
+    
+    user = relationship("User")
+
+# --- Modèles existants conservés ---
 class Transaction(Base):
     __tablename__ = "transactions"
-
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"))
     category_id = Column(String, ForeignKey("categories.id"), nullable=True)
-    label = Column(String, nullable=False)
-    amount = Column(Float, nullable=False)
-    date = Column(DateTime(timezone=True), server_default=func.now())
-    source = Column(Enum(TransactionSource), default=TransactionSource.AUTRE)
-    is_processed = Column(Boolean, default=False)
+    label = Column(String)
+    amount = Column(Float)
+    date = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="transactions")
-    pocket_category = relationship("Category", back_populates="transactions")
-    splits = relationship("TransactionSplit", back_populates="parent_transaction")
+    category = relationship("Category", back_populates="transactions")
+    splits = relationship("TransactionSplit", back_populates="transaction")
 
 class TransactionSplit(Base):
-    """Permet de diviser une transaction entrante (Revenu) sur plusieurs destinations."""
     __tablename__ = "transaction_splits"
-    
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    transaction_id = Column(String, ForeignKey("transactions.id"), nullable=False)
-    pocket_id = Column(String, ForeignKey("pockets.id"), nullable=False)
-    category_id = Column(String, ForeignKey("categories.id"), nullable=True)
-    amount = Column(Float, nullable=False)
-    label = Column(String, nullable=True)
+    transaction_id = Column(String, ForeignKey("transactions.id"))
+    pocket_id = Column(String, ForeignKey("pockets.id"))
+    amount = Column(Float)
+    
+    transaction = relationship("Transaction", back_populates="splits")
 
-    parent_transaction = relationship("Transaction", back_populates="splits")
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), unique=True)
+    tithing_enabled = Column(Boolean, default=False)
+    
+    user = relationship("User", back_populates="settings")

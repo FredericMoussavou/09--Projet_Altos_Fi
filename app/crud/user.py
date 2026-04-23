@@ -7,6 +7,10 @@ from app.core.security import get_password_hash
 
 DEFAULTS_PATH = os.path.join("app", "core", "defaults.json")
 
+def get_user_by_username(db: Session, username: str):
+    """Récupère un utilisateur par son nom d'utilisateur."""
+    return db.query(User).filter(User.username == username).first()
+
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
